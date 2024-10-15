@@ -537,10 +537,12 @@ class NEWCompositeImageGenerationNode:
         ).to(device)
         photomaker_path = folder_paths.get_full_path("photomaker", filename)
         ### Load PhotoMaker checkpoint
+        photomaker_ckpt = hf_hub_download(repo_id="TencentARC/PhotoMaker-V2", filename="photomaker-v2.bin",
+                                          repo_type="model")
         pipe.load_photomaker_adapter(
-            os.path.dirname(photomaker_path),
+            os.path.dirname(photomaker_ckpt),
             subfolder="",
-            weight_name=os.path.basename(photomaker_path),
+            weight_name=os.path.basename(photomaker_ckpt),
             trigger_word="img"  # define the trigger word
         )
         pipe.fuse_lora()
