@@ -5,6 +5,7 @@ import numpy as np
 import torch
 import torchvision.transforms.v2 as T
 from PIL import Image
+from controlnet_aux import OpenposeDetector
 from diffusers import EulerDiscreteScheduler, ControlNetModel
 from diffusers.utils import load_image
 from huggingface_hub import hf_hub_download
@@ -535,11 +536,12 @@ class NEWCompositeImageGenerationNode:
     def generate_image(self,prompt, negative_prompt,
                        pil_image, pose_image,filename,ckpt_name,cn_name):
         # Code for the remaining process including style template application, merge step calculation, etc.
-
+        openpose = OpenposeDetector.from_pretrained("lllyasviel/ControlNet")
+        pose_image  =tensor_to_image(pose_image.squeeze(0))
+        pose_image = openpose(pose_image, detect_resolution=512, image_resolution=1024)
         controlnet_pose = ControlNetModel.from_pretrained(
             cn_name, torch_dtype=torch_dtype,
         ).to(device)
-
         # download an image
 
         # initialize the models and pipeline
