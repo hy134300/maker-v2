@@ -506,13 +506,6 @@ class NEWCompositeImageGenerationNode:
                 "ckpt_name": (folder_paths.get_filename_list("checkpoints"),),
                 "prompt": ("STRING", {"multiline": True, "forceInput": True}),
                 "negative_prompt": ("STRING", {"multiline": True, "forceInput": True}),
-                "batch_size": ("INT", {"default": 1, "min": 1, "max": 4, "display": "slider"}),
-                "style_strength_ratio": ("INT", {"default": 20, "min": 1, "max": 50, "display": "slider"}),
-                "steps": ("INT", {"default": 50, "min": 1, "max": 100, "step": 1, "display": "slider"}),
-                "guidance_scale": ("FLOAT", {"default": 5, "min": 0, "max": 10, "display": "slider"}),
-                "width": ("INT", {"default": 1024, "min": 512, "max": 2048, "step": 32, "display": "slider"}),
-                "height": ("INT", {"default": 1024, "min": 512, "max": 2048, "step": 32, "display": "slider"}),
-                "seed": ("INT", {"default": 0, "min": 0, "max": 0xffffffffffffffff}),
                 "pil_image": ("IMAGE",),
                 "pose_image": ("IMAGE",)
             }
@@ -522,8 +515,8 @@ class NEWCompositeImageGenerationNode:
     FUNCTION = "generate_image"
     CATEGORY = "📷PhotoMakerV2"
 
-    def generate_image(self, steps, seed, prompt, negative_prompt, style_strength_ratio, guidance_scale, batch_size,
-                       pil_image, pose_image, width, height,filename,ckpt_name):
+    def generate_image(self,prompt, negative_prompt,
+                       pil_image, pose_image,filename,ckpt_name):
         # Code for the remaining process including style template application, merge step calculation, etc.
 
         controlnet_pose_model = "xinsir/controlnet-openpose-sdxl-1.0"
