@@ -537,7 +537,13 @@ class NEWCompositeImageGenerationNode:
                        pil_image, pose_image,filename,ckpt_name,cn_name):
         # Code for the remaining process including style template application, merge step calculation, etc.
         openpose = OpenposeDetector.from_pretrained("lllyasviel/ControlNet")
-        pose_image  =tensor_to_image(pose_image.squeeze(0))
+        current_file_path = os.path.abspath(__file__)
+        # 获取当前文件所在的目录
+        current_directory = os.path.dirname(current_file_path)+"/examples/pos_ref.png"
+        pose_image = load_image(
+            current_directory
+        )
+        #pose_image  =tensor_to_image(pose_image.squeeze(0))
         pose_image = openpose(pose_image, detect_resolution=512, image_resolution=1024)
         controlnet_pose = ControlNetModel.from_pretrained(
             cn_name, torch_dtype=torch_dtype,
