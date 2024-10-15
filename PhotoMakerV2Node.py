@@ -504,7 +504,7 @@ class NEWCompositeImageGenerationNode:
             "required": {
                 "filename": (folder_paths.get_filename_list("photomaker"),),
                 "ckpt_name": (folder_paths.get_filename_list("checkpoints"),),
-                "cn_name": (folder_paths.get_filename_list("controlnet"),),
+                "cn_name": ("STRING", {"multiline": True, "forceInput": True},),
                 "prompt": ("STRING", {"multiline": True, "forceInput": True}),
                 "negative_prompt": ("STRING", {"multiline": True, "forceInput": True}),
                 "pil_image": ("IMAGE",),
@@ -520,10 +520,8 @@ class NEWCompositeImageGenerationNode:
                        pil_image, pose_image,filename,ckpt_name,cn_name):
         # Code for the remaining process including style template application, merge step calculation, etc.
 
-        controlnet_pose_model = "thibaud/controlnet-openpose-sdxl-1.0"
-        ckpt_path = folder_paths.get_full_path("controlnet", cn_name)
         controlnet_pose = ControlNetModel.from_pretrained(
-            controlnet_pose_model, torch_dtype=torch_dtype,
+            cn_name, torch_dtype=torch_dtype,
         ).to(device)
 
         # download an image
