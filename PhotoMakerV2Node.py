@@ -1,20 +1,19 @@
-import torch
-import time
 import os
-import folder_paths
-from diffusers.utils import load_image
-from diffusers import EulerDiscreteScheduler, ControlNetModel
+import time
 
-from custom_nodes.comfyui_controlnet_aux.src.custom_controlnet_aux.dwpose import DwposeDetector
-from custom_nodes.comfyui_controlnet_aux.src.custom_controlnet_aux.open_pose import OpenposeDetector
-from .pipeline import PhotoMakerStableDiffusionXLPipeline
-from huggingface_hub import hf_hub_download
-from .style_template import styles
-from PIL import Image
 import numpy as np
+import torch
+import torchvision.transforms.v2 as T
+from PIL import Image
+from diffusers import EulerDiscreteScheduler, ControlNetModel
+from diffusers.utils import load_image
+from huggingface_hub import hf_hub_download
+
+import folder_paths
 from .insightface_package import FaceAnalysis2, analyze_faces
+from .pipeline import PhotoMakerStableDiffusionXLPipeline
 from .pipeline_controlnet import PhotoMakerStableDiffusionXLControlNetPipeline
-import comfy.controlnet
+from .style_template import styles
 
 # global variable
 # photomaker_path = hf_hub_download(repo_id="TencentARC/PhotoMaker", filename="photomaker-v1.bin", repo_type="model")
@@ -32,6 +31,23 @@ DEFAULT_STYLE_NAME = "Photographic (Default)"
 face_detector = FaceAnalysis2(providers=['CoreMLExecutionProvider'], allowed_modules=['detection', 'recognition'])
 face_detector.prepare(ctx_id=0, det_size=(640, 640))
 
+def tensor_to_image(first_image):
+    # 提取第一个图像，现在它是 [C, H, W]
+    if first_image.dtype != torch.float32:
+        first_image = first_image.to(torch.float32)
+
+    if first_image.max() > 1.0:
+        first_image = first_image / 255.0
+    first_image = first_image.permute(2, 0, 1)
+    # 转换为 PIL 图像并转换为 numpy 数组
+    try:
+        pil_image = T.ToPILImage()(first_image)
+        pil_image_rgb = pil_image.convert('RGB')
+        image_np = np.array(pil_image_rgb)
+        print(image_np.shape)  # Outputs shape (1104, 828, 3) if successful
+    except Exception as e:
+        print(f'Error converting image: {e}')
+    return T.ToPILImage()(first_image).convert('RGB')
 
 def apply_style(style_name: str, positive: str, negative: str = "") -> tuple[str, str]:
     p, n = styles.get(style_name, styles[DEFAULT_STYLE_NAME])
@@ -540,9 +556,9 @@ class NEWCompositeImageGenerationNode:
         photomaker_ckpt = hf_hub_download(repo_id="TencentARC/PhotoMaker-V2", filename="photomaker-v2.bin",
                                           repo_type="model")
         pipe.load_photomaker_adapter(
-            os.path.dirname(photomaker_ckpt),
+            os.path.dirname(photomaker_path),
             subfolder="",
-            weight_name=os.path.basename(photomaker_ckpt),
+            weight_name=os.path.basename(photomaker_path),
             trigger_word="img"  # define the trigger word
         )
         pipe.fuse_lora()
@@ -571,7 +587,9 @@ class NEWCompositeImageGenerationNode:
             raise ValueError(f"No face detected in input image pool")
 
         id_embeds = torch.stack(id_embed_list)
-
+        pose_image = load_image(
+            tensor_to_image(pose_image.squeeze(0))
+        )
         # generate image
         output = pipe(
             prompt,
