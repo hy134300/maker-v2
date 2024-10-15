@@ -520,10 +520,10 @@ class NEWCompositeImageGenerationNode:
                        pil_image, pose_image,filename,ckpt_name,cn_name):
         # Code for the remaining process including style template application, merge step calculation, etc.
 
-        controlnet_pose_model = "xinsir/controlnet-openpose-sdxl-1.0"
+        controlnet_pose_model = "thibaud/controlnet-openpose-sdxl-1.0"
         ckpt_path = folder_paths.get_full_path("controlnet", cn_name)
         controlnet_pose = ControlNetModel.from_pretrained(
-            ckpt_path, torch_dtype=torch_dtype,
+            controlnet_pose_model, torch_dtype=torch_dtype,
         ).to(device)
 
         # download an image
