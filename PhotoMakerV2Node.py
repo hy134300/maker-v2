@@ -595,9 +595,6 @@ class NEWCompositeImageGenerationNode:
             raise ValueError(f"No face detected in input image pool")
 
         id_embeds = torch.stack(id_embed_list)
-        pose_image = load_image(
-            tensor_to_image(pose_image.squeeze(0))
-        )
         # generate image
         output = pipe(
             prompt,
